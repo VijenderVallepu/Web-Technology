@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Rental Store</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body ng-app="movieApp" ng-controller="MovieController">
+    <h1>Movie Rental Store</h1>
+
+    <label for="genreFilter">Filter by Genre:</label>
+    <select id="genreFilter" ng-model="filters.genre">
+        <option value="">All</option>
+        <option ng-repeat="genre in genres">{{ genre }}</option>
+    </select>
+
+    <label for="yearFilter">Filter by Year:</label>
+    <select id="yearFilter" ng-model="filters.year">
+        <option value="">All</option>
+        <option ng-repeat="year in years">{{ year }}</option>
+    </select>
+
+    <table border="0">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Genre</th>
+                <th>Year</th>
+                <th>Rental Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="movie in movies | filter:filterMovies">
+                <td>{{ movie.title }}</td>
+                <td>{{ movie.genre }}</td>
+                <td>{{ movie.year }}</td>
+                <td>{{ calculateRentalPrice(movie.year) | currency }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Add New Movie</h3>
+    <form ng-submit="addMovie()">
+        <input type="text" ng-model="newMovie.title" placeholder="Title" required>
+        <input type="text" ng-model="newMovie.genre" placeholder="Genre" required>
+        <input type="number" ng-model="newMovie.year" placeholder="Year" required>
+        <button type="submit">Add Movie</button>
+    </form>
+
+    <script>
+        const app = angular.module('movieApp', []);
+
+        app.controller('MovieController', ['$scope', function($scope) {
+            $scope.movies = [
+                { title: 'Inception', genre: 'Sci-Fi', year: 2010 },
+                { title: 'Parasite', genre: 'Drama', year: 2019 },
+                { title: 'The Dark Knight', genre: 'Action', year: 2008 },
+                { title: 'Avengers: Endgame', genre: 'Action', year: 2019 },
+                { title: 'Interstellar', genre: 'Sci-Fi', year: 2014 }
+            ];
+
+            
+            $scope.genres = [...new Set($scope.movies.map(movie => movie.genre))];
+            $scope.years = [...new Set($scope.movies.map(movie => movie.year))];
+
+            $scope.filters = { genre: '', year: '' };
+
+         
+            $scope.filterMovies = function(movie) {
+                const genreMatch = !$scope.filters.genre || movie.genre === $scope.filters.genre;
+                const yearMatch = !$scope.filters.year || movie.year == $scope.filters.year;
+                return genreMatch && yearMatch;
+            };
+
+            $scope.newMovie = { title: '', genre: '', year: '' };
+            $scope.addMovie = function() {
+                const existingMovie = $scope.movies.find(m => m.title.toLowerCase() === $scope.newMovie.title.toLowerCase());
+
+                if (existingMovie) {
+                    alert('Movie title must be unique!');
+                } else {
+                    $scope.movies.push({
+                        title: $scope.newMovie.title,
+                        genre: $scope.newMovie.genre,
+                        year: $scope.newMovie.year
+                    });
+
+                 
+                    $scope.genres = [...new Set($scope.movies.map(movie => movie.genre))];
+                    $scope.years = [...new Set($scope.movies.map(movie => movie.year))];
+
+                  
+                    $scope.newMovie = { title: '', genre: '', year: '' };
+                }
+            };
+
+            $scope.calculateRentalPrice = function(year) {
+                const currentYear = new Date().getFullYear();
+                return currentYear - year <= 3 ? 5 : 3;
+            };
+        }]);
+    </script>
+</body>
+</html>
